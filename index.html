@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budgetly — Student Monthly Budget Planner</title>
+  <meta name="description" content="Track daily student expenses, watch your monthly budget gauge, and get smart spending insights. Data stays on your device." />
+  <meta property="og:title" content="Budgetly — Student Monthly Budget Planner" />
+  <meta property="og:description" content="Set a monthly budget, log expenses, and get warnings at 80% and 100% of your budget." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ambient luminous glows -->
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="glow glow-3"></div>
+
+  <div class="page">
+    <!-- top bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge edge">B</div>
+        <div>
+          <p class="brand-name">Budget<span class="accent-text">ly</span></p>
+          <p class="brand-sub">Student Planner</p>
+        </div>
+      </div>
+      <div class="month-pill"><span class="dot dot-mint"></span> <span id="currentMonth">This month</span></div>
+    </header>
+
+    <!-- hero: budget + progress -->
+    <section class="panel pf edge hero">
+      <div class="hero-top">
+        <div>
+          <p class="eyebrow">Monthly budget</p>
+          <form id="budgetForm" class="budget-form">
+            <span class="currency">₹</span>
+            <input id="budgetInput" type="number" min="1" step="0.01" placeholder="1200" required />
+            <button type="submit" class="btn btn-solid" id="budgetBtn">Set budget</button>
+          </form>
+          <p class="hero-sub" id="budgetSub">Set your monthly budget to start tracking.</p>
+          <p class="eyebrow" style="margin-top:18px">Daily limit</p>
+          <form id="dailyForm" class="budget-form">
+            <span class="currency">₹</span>
+            <input id="dailyInput" type="number" min="1" step="0.01" placeholder="100" required />
+            <button type="submit" class="btn btn-solid" id="dailyBtn">Set limit</button>
+          </form>
+          <p class="hero-sub" id="dailySub">Optional — get warned when a day goes over.</p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat pf2">
+            <p class="eyebrow">Total spent</p>
+            <p class="stat-value" id="statSpent">₹0.00</p>
+          </div>
+          <div class="stat pf2">
+            <p class="eyebrow">Remaining</p>
+            <p class="stat-value mint" id="statRemaining">₹0.00</p>
+          </div>
+          <div class="stat pf2">
+            <p class="eyebrow">Used</p>
+            <p class="stat-value" id="statPercent">0%</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- progress -->
+      <div class="progress-wrap">
+        <div class="progress-labels">
+          <span>Budget used</span>
+          <span class="progress-pct" id="progressPct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          <div class="threshold-marker"><span class="tick"></span><span class="tick-label">80%</span></div>
+        </div>
+      </div>
+
+      <!-- warning / over-budget banners -->
+      <div class="banner banner-warning hidden" id="bannerWarning">
+        <div class="banner-icon">!</div>
+        <p><strong>Approaching limit.</strong> You've used <span id="warningPct"></span> of your budget. Ease off spending for the rest of the month.</p>
+      </div>
+      <div class="banner banner-danger hidden" id="bannerDanger">
+        <div class="banner-icon">✕</div>
+        <p><strong>Budget exceeded.</strong> You're <span id="overAmount"></span> over your monthly budget. Time to stop non-essential spending.</p>
+      </div>
+      <div class="banner banner-warning hidden" id="bannerDaily">
+        <div class="banner-icon">!</div>
+        <p><strong>Daily limit hit.</strong> You've spent <span id="dailySpent"></span> today — over your <span id="dailyLimitEcho"></span> daily limit.</p>
+      </div>
+    </section>
+
+    <!-- grid -->
+    <div class="grid">
+      <!-- add expense -->
+      <section class="panel pf2">
+        <h2 class="section-title">Add an expense</h2>
+        <form id="expenseForm" class="expense-form">
+          <label>
+            <span>Amount</span>
+            <input id="amount" type="number" min="0.01" step="0.01" placeholder="12.50" required />
+          </label>
+          <label>
+            <span>Category</span>
+            <select id="category" required>
+              <option value="Food">Food</option>
+              <option value="Transport">Transport</option>
+              <option value="Education">Education</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label>
+            <span>Description</span>
+            <input id="description" type="text" maxlength="60" placeholder="Coffee with friends" required />
+          </label>
+          <label>
+            <span>Date</span>
+            <input id="date" type="date" required />
+          </label>
+          <button type="submit" class="btn btn-solid btn-block">Add expense</button>
+        </form>
+      </section>
+
+      <!-- doughnut chart -->
+      <section class="panel pf2">
+        <div class="section-head">
+          <h2 class="section-title">Spending by category</h2>
+          <span class="muted-xs" id="chartMonth"></span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="categoryChart"></canvas>
+          <p class="chart-empty hidden" id="chartEmpty">Add expenses to see your chart.</p>
+        </div>
+        <ul class="legend" id="legend"></ul>
+      </section>
+
+      <!-- expense history -->
+      <section class="panel pf2">
+        <div class="section-head">
+          <h2 class="section-title">Recent expenses</h2>
+          <span class="muted-xs" id="historyCount">0 entries</span>
+        </div>
+        <ul class="history" id="historyList"></ul>
+        <p class="chart-empty" id="historyEmpty">No expenses yet — add your first one.</p>
+      </section>
+
+      <!-- smart insights -->
+      <section class="panel pf2">
+        <h2 class="section-title">Smart insights</h2>
+        <ul class="insights" id="insightsList"></ul>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <span>Budgetly · saved locally on this device</span>
+      <span>Warnings at 80% · alerts over 100%</span>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
